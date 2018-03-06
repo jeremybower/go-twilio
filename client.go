@@ -2,6 +2,7 @@ package twilio
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 )
@@ -23,6 +24,7 @@ func NewClient(sid, token string) *Client {
 func (client *Client) do(
 	req *http.Request,
 	authorize bool,
+	statusCode int,
 	responseObject interface{},
 ) error {
 	if authorize {
@@ -33,6 +35,10 @@ func (client *Client) do(
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return err
+	}
+
+	if resp.StatusCode != statusCode {
+		return errors.New("Unexpected status: " + resp.Status)
 	}
 
 	if responseObject != nil {

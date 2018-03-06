@@ -16,25 +16,33 @@ type LookupsPhoneNumbersBuilder struct {
 	callerName  bool
 }
 
+// LookupsPhoneNumbersCallerNameResponse is the optional caller name part of the
+// response.
+type LookupsPhoneNumbersCallerNameResponse struct {
+	CallerName string `json:"caller_name"`
+	CallerType string `json:"caller_type"`
+	ErrorCode  string `json:"error_code"`
+}
+
+// LookupsPhoneNumbersCarrierResponse is the optional carrier information part
+// of the response.
+type LookupsPhoneNumbersCarrierResponse struct {
+	MobileCountryCode string `json:"mobile_country_code"`
+	MobileNetworkCode string `json:"mobile_network_code"`
+	Name              string `json:"name"`
+	Type              string `json:"type"`
+	ErrorCode         string `json:"error_code"`
+}
+
 // LookupsPhoneNumbersResponse is the response for requests to lookup phone
 // numbers.
 type LookupsPhoneNumbersResponse struct {
-	CountryCode    string `json:"country_code"`
-	PhoneNumber    string `json:"phone_number"`
-	NationalFormat string `json:"national_format"`
-	CallerName     struct {
-		CallerName string `json:"caller_name"`
-		CallerType string `json:"caller_type"`
-		ErrorCode  string `json:"error_code"`
-	} `json:"caller_name"`
-	Carrier struct {
-		MobileCountryCode string `json:"mobile_country_code"`
-		MobileNetworkCode string `json:"mobile_network_code"`
-		Name              string `json:"name"`
-		Type              string `json:"type"`
-		ErrorCode         string `json:"error_code"`
-	} `json:"carrier"`
-	URL string `json:"url"`
+	CountryCode    string                                `json:"country_code"`
+	PhoneNumber    string                                `json:"phone_number"`
+	NationalFormat string                                `json:"national_format"`
+	CallerName     LookupsPhoneNumbersCallerNameResponse `json:"caller_name"`
+	Carrier        LookupsPhoneNumbersCarrierResponse    `json:"carrier"`
+	URL            string                                `json:"url"`
 }
 
 // WithCountryCode is optional. It adds the ISO country code of the phone
@@ -69,18 +77,21 @@ func (b *LookupsPhoneNumbersBuilder) Build() (*http.Request, error) {
 		return nil, err
 	}
 
-	if b.countryCode != "" {
-		requestURL.Query().Set("CountryCode", b.countryCode)
-	}
+	q := requestURL.Query()
 
-	if b.carrier {
-		requestURL.Query().Add("Type", "carrier")
+	if b.countryCode != "" {
+		q.Set("CountryCode", b.countryCode)
 	}
 
 	if b.callerName {
-		requestURL.Query().Add("Type", "caller-name")
+		q.Add("Type", "caller-name")
 	}
 
+	if b.carrier {
+		q.Add("Type", "carrier")
+	}
+
+	requestURL.RawQuery = q.Encode()
 	req, err := http.NewRequest(http.MethodGet, requestURL.String(), nil)
 	if err != nil {
 		return nil, err
@@ -97,7 +108,7 @@ func (b *LookupsPhoneNumbersBuilder) Do() (*LookupsPhoneNumbersResponse, error) 
 	}
 
 	var responseObject LookupsPhoneNumbersResponse
-	err = b.lookups.client.do(req, true, &responseObject)
+	err = b.lookups.client.do(req, true, http.StatusOK, &responseObject)
 	if err != nil {
 		return nil, err
 	}
