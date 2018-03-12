@@ -14,6 +14,11 @@ func TestLookupsPhoneNumbersBuilder(t *testing.T) {
 		err := r.ParseForm()
 		assert.NoError(t, err)
 
+		username, password, ok := r.BasicAuth()
+		assert.True(t, ok)
+		assert.Equal(t, "sid", username)
+		assert.Equal(t, "token", password)
+
 		assert.Equal(t, 2, len(r.URL.Query()["Type"]))
 		assert.Equal(t, []string{"caller-name", "carrier"}, r.URL.Query()["Type"])
 		assert.Equal(t, "US", r.URL.Query().Get("CountryCode"))
