@@ -2,48 +2,78 @@ package twilio
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 )
 
 // Client is the Twilio client.
-type Client struct {
-	sid   string
-	token string
+type Client interface {
+	Lookup() Lookup
 }
 
-// NewClient creates a new Twilio client.
-func NewClient(sid, token string) *Client {
-	return &Client{
-		sid:   sid,
-		token: token,
+// Options are the configuration options for the client.
+type Options struct {
+	LookupBaseURL string
+	HTTPClient    *http.Client
+	ReaderFunc    func(io.Reader) io.Reader
+	SID           string
+	Token         string
+}
+
+// NewOptions will create new options with default values.
+func NewOptions(sid, token string) *Options {
+	readerFunc := func(r io.Reader) io.Reader {
+		return r
+	}
+
+	return &Options{
+		LookupBaseURL: "https://lookups.twilio.com",
+		HTTPClient:    &http.Client{},
+		ReaderFunc:    readerFunc,
+		SID:           sid,
+		Token:         token,
 	}
 }
 
-func (client *Client) do(
+// NewClient will create a new client with the given options.
+func NewClient(opts *Options) Client {
+	return &clientImpl{
+		opts: opts,
+	}
+}
+
+type clientImpl struct {
+	opts *Options
+}
+
+func do(
+	opts *Options,
 	req *http.Request,
 	authorize bool,
-	statusCode int,
+	expectedStatusCode int,
 	responseObject interface{},
 ) error {
 	if authorize {
-		req.SetBasicAuth(client.sid, client.token)
+		req.SetBasicAuth(opts.SID, opts.Token)
 	}
 
-	httpClient := &http.Client{}
-	resp, err := httpClient.Do(req)
+	resp, err := opts.HTTPClient.Do(req)
 	if err != nil {
 		return err
 	}
 
-	if resp.StatusCode != statusCode {
-		return errors.New("Unexpected status: " + resp.Status)
+	if resp.StatusCode != expectedStatusCode {
+		return fmt.Errorf(
+			"Unexpected response. Expected %d but found %d",
+			expectedStatusCode,
+			resp.StatusCode)
 	}
 
 	if responseObject != nil {
 		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := ioutil.ReadAll(opts.ReaderFunc(resp.Body))
 		if err != nil {
 			return err
 		}
