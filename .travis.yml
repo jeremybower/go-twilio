@@ -9,6 +9,6 @@ env:
 - GO111MODULE=on
 install: true
 script:
-- go test -tags="integration unit" -race -coverprofile=coverage.txt -covermode=atomic
+- go test -mod=vendor -tags="integration unit" -race -coverprofile=coverage.txt -covermode=atomic
 after_success:
 - bash <(curl -s https://codecov.io/bash)
