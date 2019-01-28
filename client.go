@@ -11,11 +11,13 @@ import (
 // Client is the Twilio client.
 type Client interface {
 	Lookup() Lookup
+	SMS() SMS
 }
 
 // Options are the configuration options for the client.
 type Options struct {
 	LookupBaseURL string
+	APIBaseURL    string
 	HTTPClient    *http.Client
 	ReaderFunc    func(io.Reader) io.Reader
 	SID           string
@@ -30,6 +32,7 @@ func NewOptions(sid, token string) *Options {
 
 	return &Options{
 		LookupBaseURL: "https://lookups.twilio.com",
+		APIBaseURL:    "https://api.twilio.com/2010-04-01",
 		HTTPClient:    &http.Client{},
 		ReaderFunc:    readerFunc,
 		SID:           sid,

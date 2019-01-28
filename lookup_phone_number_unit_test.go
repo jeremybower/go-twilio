@@ -3,27 +3,16 @@
 package twilio
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func setupMockServer() (*http.ServeMux, *httptest.Server, func()) {
-	mux := http.NewServeMux()
-	server := httptest.NewServer(mux)
-
-	return mux, server, func() {
-		server.Close()
-	}
-}
-
-func TestTimeoutErrorUsingMockServer(t *testing.T) {
+func TestLookupPhoneNumberWithTimeoutErrorUsingMockServer(t *testing.T) {
 	mux, server, shutdown := setupMockServer()
 	defer shutdown()
 
@@ -51,13 +40,7 @@ func TestTimeoutErrorUsingMockServer(t *testing.T) {
 	assert.Error(t, err)
 }
 
-type errReader int
-
-func (errReader) Read(p []byte) (n int, err error) {
-	return 0, errors.New("test error")
-}
-
-func TestReadErrorUsingMockServer(t *testing.T) {
+func TestLookupPhoneNumberWithReadErrorUsingMockServer(t *testing.T) {
 	mux, server, shutdown := setupMockServer()
 	defer shutdown()
 
@@ -82,7 +65,7 @@ func TestReadErrorUsingMockServer(t *testing.T) {
 	assert.Equal(t, err.Error(), expectedError)
 }
 
-func TestUnexpectedStatusCodeUsingMockServer(t *testing.T) {
+func TestLookupPhoneNumberWithUnexpectedStatusCodeUsingMockServer(t *testing.T) {
 	mux, server, shutdown := setupMockServer()
 	defer shutdown()
 
@@ -104,7 +87,7 @@ func TestUnexpectedStatusCodeUsingMockServer(t *testing.T) {
 	assert.Equal(t, err.Error(), expectedError)
 }
 
-func TestInvalidJSONUsingMockServer(t *testing.T) {
+func TestLookupPhoneNumberWithInvalidJSONUsingMockServer(t *testing.T) {
 	mux, server, shutdown := setupMockServer()
 	defer shutdown()
 

@@ -9,7 +9,6 @@ import (
 // numbers.
 type LookupPhoneNumberBuilder struct {
 	opts                        *Options
-	url                         string
 	phoneNumber                 string
 	countryCode                 string
 	includeCarrierInResponse    bool
