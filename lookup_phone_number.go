@@ -5,16 +5,6 @@ import (
 	"net/url"
 )
 
-// LookupPhoneNumberBuilder is a helper to build requests to lookup phone
-// numbers.
-type LookupPhoneNumberBuilder struct {
-	opts                        *Options
-	phoneNumber                 string
-	countryCode                 string
-	includeCarrierInResponse    bool
-	includeCallerNameInResponse bool
-}
-
 // LookupPhoneNumberCallerNameResponse is the optional caller name part of the
 // response.
 type LookupPhoneNumberCallerNameResponse struct {
@@ -44,49 +34,29 @@ type LookupPhoneNumberResponse struct {
 	URL            string                              `json:"url"`
 }
 
-// WithCountryCode is optional. It adds the ISO country code of the phone
-// number. This is used to specify the country when the number is provided in a
-// national format.
-func (b *LookupPhoneNumberBuilder) WithCountryCode(
+func (client *clientImpl) LookupPhoneNumber(
+	phoneNumber string,
 	countryCode string,
-) *LookupPhoneNumberBuilder {
-	b.countryCode = countryCode
-	return b
-}
-
-// IncludeCarrierInResponse indicates that carrier information should be returned with the
-// request. Extra charges may apply.
-func (b *LookupPhoneNumberBuilder) IncludeCarrierInResponse() *LookupPhoneNumberBuilder {
-	b.includeCarrierInResponse = true
-	return b
-}
-
-// IncludeCallerNameInResponse indicates that caller name information should be returned with
-// the request. Extra charges may apply.
-func (b *LookupPhoneNumberBuilder) IncludeCallerNameInResponse() *LookupPhoneNumberBuilder {
-	b.includeCallerNameInResponse = true
-	return b
-}
-
-// Build will build the request.
-func (b *LookupPhoneNumberBuilder) Build() (*http.Request, error) {
+	includeCarrierInResponse bool,
+	includeCallerNameInResponse bool,
+) (*LookupPhoneNumberResponse, error) {
 	requestURL, err := url.Parse(
-		b.opts.LookupBaseURL + "/v1/PhoneNumbers/" + url.PathEscape(b.phoneNumber))
+		client.opts.LookupBaseURL + "/v1/PhoneNumbers/" + url.PathEscape(phoneNumber))
 	if err != nil {
 		return nil, err
 	}
 
 	q := requestURL.Query()
 
-	if b.countryCode != "" {
-		q.Set("CountryCode", b.countryCode)
+	if countryCode != CountryCodeNone {
+		q.Set("CountryCode", countryCode)
 	}
 
-	if b.includeCallerNameInResponse {
+	if includeCallerNameInResponse {
 		q.Add("Type", "caller-name")
 	}
 
-	if b.includeCarrierInResponse {
+	if includeCarrierInResponse {
 		q.Add("Type", "carrier")
 	}
 
@@ -96,18 +66,8 @@ func (b *LookupPhoneNumberBuilder) Build() (*http.Request, error) {
 		return nil, err
 	}
 
-	return req, nil
-}
-
-// Do will build and perform the request, and return the response.
-func (b *LookupPhoneNumberBuilder) Do() (*LookupPhoneNumberResponse, error) {
-	req, err := b.Build()
-	if err != nil {
-		return nil, err
-	}
-
 	var response LookupPhoneNumberResponse
-	err = do(b.opts, req, true, http.StatusOK, &response)
+	err = client.do(req, true, http.StatusOK, &response)
 	if err != nil {
 		return nil, err
 	}

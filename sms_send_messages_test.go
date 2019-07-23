@@ -29,11 +29,11 @@ func TestSMSSendMessageWithTimeoutErrorUsingMockServer(t *testing.T) {
 		Timeout: 10 * time.Millisecond,
 	}
 	opts.APIBaseURL = server.URL
-	builder := NewClient(opts).
-		SMS().
-		SendMessage("+14155552345", "+15108675310", "Hello!")
-
-	_, err := builder.Do()
+	_, err := NewClient(opts).SendSMSMessage(
+		"+14155552345",
+		"+15108675310",
+		"Hello!",
+	)
 	assert.Error(t, err)
 }
 
@@ -50,11 +50,12 @@ func TestSMSSendMessageWithReadErrorUsingMockServer(t *testing.T) {
 		return errReader(0)
 	}
 	opts.APIBaseURL = server.URL
-	builder := NewClient(opts).
-		SMS().
-		SendMessage("+14155552345", "+15108675310", "Hello!")
+	_, err := NewClient(opts).SendSMSMessage(
+		"+14155552345",
+		"+15108675310",
+		"Hello!",
+	)
 
-	_, err := builder.Do()
 	expectedError := "test error"
 	assert.Equal(t, err.Error(), expectedError)
 }
@@ -69,11 +70,12 @@ func TestSMSSendMessageWithUnexpectedStatusCodeUsingMockServer(t *testing.T) {
 
 	opts := NewOptions("sid", "token")
 	opts.APIBaseURL = server.URL
-	builder := NewClient(opts).
-		SMS().
-		SendMessage("+14155552345", "+15108675310", "Hello!")
+	_, err := NewClient(opts).SendSMSMessage(
+		"+14155552345",
+		"+15108675310",
+		"Hello!",
+	)
 
-	_, err := builder.Do()
 	expectedError := "Unexpected response. Expected 200 but found 400"
 	assert.Equal(t, err.Error(), expectedError)
 }
@@ -89,11 +91,12 @@ func TestSMSSendMessageWithInvalidJSONUsingMockServer(t *testing.T) {
 
 	opts := NewOptions("sid", "token")
 	opts.APIBaseURL = server.URL
-	builder := NewClient(opts).
-		SMS().
-		SendMessage("+14155552345", "+15108675310", "Hello!")
+	_, err := NewClient(opts).SendSMSMessage(
+		"+14155552345",
+		"+15108675310",
+		"Hello!",
+	)
 
-	_, err := builder.Do()
 	expectedError := "invalid character 'i' looking for beginning of value"
 	assert.Equal(t, err.Error(), expectedError)
 }
@@ -159,11 +162,12 @@ func TestSMSSendMessageUsingMockServer(t *testing.T) {
 
 	opts := NewOptions("sid", "token")
 	opts.APIBaseURL = server.URL
-	builder := NewClient(opts).
-		SMS().
-		SendMessage("+14155552345", "+15108675310", "Hello!")
+	resp, err := NewClient(opts).SendSMSMessage(
+		"+14155552345",
+		"+15108675310",
+		"Hello!",
+	)
 
-	resp, err := builder.Do()
 	assert.NoError(t, err)
 	assert.Equal(t, &SMSSendMessageResponse{
 		ErrorMessage: "",

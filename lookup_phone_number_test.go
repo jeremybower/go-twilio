@@ -29,14 +29,12 @@ func TestLookupPhoneNumberWithTimeoutErrorUsingMockServer(t *testing.T) {
 	opts.HTTPClient = &http.Client{
 		Timeout: 10 * time.Millisecond,
 	}
-	builder := NewClient(opts).
-		Lookup().
-		PhoneNumber("+15108675310").
-		WithCountryCode("US").
-		IncludeCallerNameInResponse().
-		IncludeCarrierInResponse()
+	_, err := NewClient(opts).LookupPhoneNumber(
+		"+15108675310",
+		"US",
+		true,
+		true)
 
-	_, err := builder.Do()
 	assert.Error(t, err)
 }
 
@@ -53,14 +51,12 @@ func TestLookupPhoneNumberWithReadErrorUsingMockServer(t *testing.T) {
 	opts.ReaderFunc = func(io.Reader) io.Reader {
 		return errReader(0)
 	}
-	builder := NewClient(opts).
-		Lookup().
-		PhoneNumber("+15108675310").
-		WithCountryCode("US").
-		IncludeCallerNameInResponse().
-		IncludeCarrierInResponse()
+	_, err := NewClient(opts).LookupPhoneNumber(
+		"+15108675310",
+		"US",
+		true,
+		true)
 
-	_, err := builder.Do()
 	expectedError := "test error"
 	assert.Equal(t, err.Error(), expectedError)
 }
@@ -75,14 +71,12 @@ func TestLookupPhoneNumberWithUnexpectedStatusCodeUsingMockServer(t *testing.T) 
 
 	opts := NewOptions("sid", "token")
 	opts.LookupBaseURL = server.URL
-	builder := NewClient(opts).
-		Lookup().
-		PhoneNumber("+15108675310").
-		WithCountryCode("US").
-		IncludeCallerNameInResponse().
-		IncludeCarrierInResponse()
+	_, err := NewClient(opts).LookupPhoneNumber(
+		"+15108675310",
+		"US",
+		true,
+		true)
 
-	_, err := builder.Do()
 	expectedError := "Unexpected response. Expected 200 but found 400"
 	assert.Equal(t, err.Error(), expectedError)
 }
@@ -98,14 +92,12 @@ func TestLookupPhoneNumberWithInvalidJSONUsingMockServer(t *testing.T) {
 
 	opts := NewOptions("sid", "token")
 	opts.LookupBaseURL = server.URL
-	builder := NewClient(opts).
-		Lookup().
-		PhoneNumber("+15108675310").
-		WithCountryCode("US").
-		IncludeCallerNameInResponse().
-		IncludeCarrierInResponse()
+	_, err := NewClient(opts).LookupPhoneNumber(
+		"+15108675310",
+		"US",
+		true,
+		true)
 
-	_, err := builder.Do()
 	expectedError := "invalid character 'i' looking for beginning of value"
 	assert.Equal(t, err.Error(), expectedError)
 }
@@ -151,14 +143,13 @@ func TestLookupPhoneNumberUsingMockServer(t *testing.T) {
 
 	opts := NewOptions("sid", "token")
 	opts.LookupBaseURL = server.URL
-	builder := NewClient(opts).
-		Lookup().
-		PhoneNumber("+15108675310").
-		WithCountryCode("US").
-		IncludeCallerNameInResponse().
-		IncludeCarrierInResponse()
+	resp, err := NewClient(opts).LookupPhoneNumber(
+		"+15108675310",
+		"US",
+		true,
+		true,
+	)
 
-	resp, err := builder.Do()
 	assert.NoError(t, err)
 	assert.Equal(t, &LookupPhoneNumberResponse{
 		URL:            "https://lookups.twilio.com/v1/PhoneNumbers/+15108675310?Type=carrier",

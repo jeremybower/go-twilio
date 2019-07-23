@@ -22,17 +22,21 @@ type SMSSendMessageResponse struct {
 }
 
 // Build will build the request.
-func (b *SMSSendMessageBuilder) Build() (*http.Request, error) {
+func (client *clientImpl) SendSMSMessage(
+	from string,
+	to string,
+	body string,
+) (*SMSSendMessageResponse, error) {
 	requestURL, err := url.Parse(
-		b.opts.APIBaseURL + "/Accounts/" + b.opts.SID + "/Messages.json")
+		client.opts.APIBaseURL + "/Accounts/" + client.opts.SID + "/Messages.json")
 	if err != nil {
 		return nil, err
 	}
 
 	v := url.Values{}
-	v.Set("From", b.from)
-	v.Set("To", b.to)
-	v.Set("Body", b.body)
+	v.Set("From", from)
+	v.Set("To", to)
+	v.Set("Body", body)
 	rb := *strings.NewReader(v.Encode())
 
 	req, err := http.NewRequest(http.MethodPost, requestURL.String(), &rb)
@@ -43,18 +47,8 @@ func (b *SMSSendMessageBuilder) Build() (*http.Request, error) {
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
-	return req, nil
-}
-
-// Do will build and perform the request, and return the response.
-func (b *SMSSendMessageBuilder) Do() (*SMSSendMessageResponse, error) {
-	req, err := b.Build()
-	if err != nil {
-		return nil, err
-	}
-
 	var response SMSSendMessageResponse
-	err = do(b.opts, req, true, http.StatusOK, &response)
+	err = client.do(req, true, http.StatusOK, &response)
 	if err != nil {
 		return nil, err
 	}
