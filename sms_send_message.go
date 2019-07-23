@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// SMSSendMessageBuilder builds an SMS message to send.
 type SMSSendMessageBuilder struct {
 	opts *Options
 	from string
@@ -13,6 +14,7 @@ type SMSSendMessageBuilder struct {
 	body string
 }
 
+// SMSSendMessageResponse is Twilio's response after sending an SMS message.
 type SMSSendMessageResponse struct {
 	Status       string `json:"status"`
 	ErrorCode    int    `json:"error_code"`
